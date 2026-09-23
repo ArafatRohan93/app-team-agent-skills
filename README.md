@@ -31,10 +31,12 @@ npx skills add https://github.com/ArafatRohan93/app-team-agent-skills/tree/main/
 To manage it later:
 
 ```bash
-npx skills list                           # what's installed
-npx skills update                         # pull the latest version
-npx skills remove flutter-app-structure   # uninstall
+npx skills list -g                           # what's installed globally
+npx skills update                            # pull the latest version
+npx skills remove -g flutter-app-structure   # uninstall (see Uninstall below)
 ```
+
+Leave out `-g` if you installed into a single project.
 
 ### Option 2: `git clone` + `install.sh`
 
@@ -102,6 +104,43 @@ In Claude Code you can also invoke it explicitly with `/flutter-app-structure`.
   ~/app-team-agent-skills/install.sh   # only needed if new skills were added
   ```
   Symlinks pick up the change right away. Anything you installed with `cp -R` needs to be copied again.
+
+## Uninstall
+
+### Installed with `npx skills`
+
+```bash
+npx skills remove -g flutter-app-structure        # global install
+npx skills remove flutter-app-structure           # project install (run it in that project)
+npx skills remove -g -a claude-code flutter-app-structure   # remove from one agent only
+```
+
+This removes the skill from every agent `npx` installed it for. Add `-y` to skip the confirmation prompt. Don't use `--all` unless you want to remove **every** skill you've installed, not just this one.
+
+### Installed with `install.sh` or by hand
+
+`npx` doesn't know about these links, so delete them yourself. They're symlinks, so `rm` removes only the link, not the repo:
+
+```bash
+rm -f ~/.claude/skills/flutter-app-structure \
+      ~/.codex/skills/flutter-app-structure \
+      ~/.agents/skills/flutter-app-structure \
+      ~/.gemini/config/skills/flutter-app-structure
+```
+
+If you used `cp -R` instead of a symlink, use `rm -rf` on that folder.
+
+To remove the clone as well, run `rm -rf ~/app-team-agent-skills`.
+
+### Check it's gone
+
+```bash
+npx skills list -g
+ls ~/.claude/skills ~/.codex/skills ~/.agents/skills ~/.gemini/config/skills 2>/dev/null \
+  | grep flutter-app-structure || echo "removed"
+```
+
+Then start a new agent session. Sessions that are already running keep the skill loaded until they end.
 
 ## Contributing
 
