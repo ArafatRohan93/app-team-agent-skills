@@ -11,7 +11,7 @@ Our team's shared skills for AI coding agents: Claude Code, Codex, Cursor, Gemin
 ## Install
 
 ```bash
-git clone git@github.com:<org>/app-team-agent-skills.git ~/app-team-agent-skills
+git clone https://github.com/ArafatRohan93/app-team-agent-skills.git ~/app-team-agent-skills
 ~/app-team-agent-skills/install.sh
 ```
 

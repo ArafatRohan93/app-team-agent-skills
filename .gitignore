@@ -10,8 +10,10 @@ __pycache__/
 *.pyc
 
 # Skill development artifacts
-*-workspace/          # skill-creator eval runs
-*.skill               # packaged skill archives
+# skill-creator eval runs
+*-workspace/
+# packaged skill archives
+*.skill
 *.log
 
 # Scratch Flutter apps used to test the bootstrap. Never commit them.
