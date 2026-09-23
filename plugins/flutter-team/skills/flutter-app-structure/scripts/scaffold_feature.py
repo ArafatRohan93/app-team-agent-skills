@@ -100,7 +100,7 @@ def build_files(pkg, feature, entity, plural, layers, l10n=False):
 
         files[f"{lib}/data/data_sources/{e}_remote_data_source.dart"] = f"""import 'dart:convert';
 
-import 'package:fpdart/fpdart.dart';
+import 'package:fpdart/fpdart.dart' show Either, left, right;
 import '{imp}/core/network/network_client.dart';
 import '{imp}/core/network/network_exception.dart';
 {model_import}
@@ -130,7 +130,7 @@ class {E}RemoteDataSource {{
 """
 
     if has_domain:
-        files[f"{lib}/domain/repositories/{e}_repository.dart"] = f"""import 'package:fpdart/fpdart.dart';
+        files[f"{lib}/domain/repositories/{e}_repository.dart"] = f"""import 'package:fpdart/fpdart.dart' show Either;
 import '{imp}/core/domain/failures/failure.dart';
 {model_import}
 
@@ -139,7 +139,7 @@ abstract interface class {E}Repository {{
 }}
 """
 
-        files[f"{lib}/domain/use_cases/get_{ps}_use_case.dart"] = f"""import 'package:fpdart/fpdart.dart';
+        files[f"{lib}/domain/use_cases/get_{ps}_use_case.dart"] = f"""import 'package:fpdart/fpdart.dart' show Either;
 import '{imp}/core/domain/failures/failure.dart';
 {model_import}
 import '{imp}/features/{f}/domain/repositories/{e}_repository.dart';
@@ -155,7 +155,7 @@ class Get{P}UseCase {{
 """
 
     if has_data and has_domain:
-        files[f"{lib}/data/repositories/{e}_repository_impl.dart"] = f"""import 'package:fpdart/fpdart.dart';
+        files[f"{lib}/data/repositories/{e}_repository_impl.dart"] = f"""import 'package:fpdart/fpdart.dart' show Either;
 import '{imp}/core/domain/failures/failure.dart';
 import '{imp}/core/network/network_exception_ext.dart';
 import '{imp}/features/{f}/data/data_sources/{e}_remote_data_source.dart';
@@ -196,7 +196,7 @@ void register{F}Dependencies() {{
 """
 
         files[f"{test}/data/repositories/{e}_repository_impl_test.dart"] = f"""import 'package:flutter_test/flutter_test.dart';
-import 'package:fpdart/fpdart.dart';
+import 'package:fpdart/fpdart.dart' show left, right;
 import 'package:mocktail/mocktail.dart';
 import '{imp}/core/domain/failures/failure.dart';
 import '{imp}/core/network/network_exception.dart';
@@ -406,7 +406,7 @@ class {F}Screen extends StatelessWidget {{
 
         if uses_uc:
             files[f"{test}/presentation/cubits/{f}_cubit_test.dart"] = f"""import 'package:flutter_test/flutter_test.dart';
-import 'package:fpdart/fpdart.dart';
+import 'package:fpdart/fpdart.dart' show left, right;
 import 'package:mocktail/mocktail.dart';
 import '{imp}/core/domain/failures/failure.dart';
 {model_import}
@@ -467,6 +467,78 @@ void main() {{
     return files
 
 
+def route_files(pkg, feature):
+    """Typed route class + round-trip test (projects bootstrapped from the shell)."""
+    f, F, c = snake(feature), pascal(feature), camel(feature)
+    imp = f"package:{pkg}"
+    route = f"""import '{imp}/core/navigation/app_route_data.dart';
+import '{imp}/shared/navigation/app_route.dart';
+
+// Route classes for the {f} feature. Fields are primitives only (ids, numbers,
+// bools, dates, enums declared in this file) — never feature models.
+// Add path/query fields, override pathParameters/queryParameters/isValid and
+// parse them in fromParams with the RouteParams helpers.
+
+final class {F}Route extends AppRouteData {{
+  const {F}Route();
+
+  @override
+  String get pathTemplate => AppRoute.{c}.path;
+
+  /// URL → route. Return null when a required parameter is missing or
+  /// malformed; fall back to defaults for optional ones.
+  static {F}Route? fromParams(
+    Map<String, String> path,
+    Map<String, String> query,
+  ) => const {F}Route();
+}}
+"""
+    test = f"""import 'package:flutter_test/flutter_test.dart';
+import '{imp}/shared/navigation/routes/{f}_routes.dart';
+
+void main() {{
+  group('{F}Route', () {{
+    test('round-trips through its parameters', () {{
+      const route = {F}Route();
+
+      final parsed = {F}Route.fromParams(
+        route.pathParameters,
+        route.queryParameters,
+      );
+
+      expect(parsed, isA<{F}Route>());
+      expect(parsed!.location, route.location);
+    }});
+  }});
+}}
+"""
+    return {
+        f"lib/shared/navigation/routes/{f}_routes.dart": route,
+        f"test/shared/navigation/routes/{f}_routes_test.dart": test,
+    }
+
+
+def add_app_route(root: Path, name: str, path: str, dry_run: bool):
+    """Append `name('path')` to the AppRoute enum. Returns 'added', 'exists' or None."""
+    file = root / "lib/shared/navigation/app_route.dart"
+    if not file.exists():
+        return None
+    text = file.read_text()
+    if re.search(rf"^\s*{name}\(", text, re.M):
+        return "exists"
+    new, count = re.subn(
+        r"\);(\s*\n\s*const AppRoute\()",
+        lambda m: f"),\n  {name}('{path}');{m.group(1)}",
+        text,
+        count=1,
+    )
+    if count == 0:
+        return None
+    if not dry_run:
+        file.write_text(new)
+    return "added"
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--root", default=".", help="Flutter project root (contains pubspec.yaml)")
@@ -488,6 +560,14 @@ def main():
     # Projects bootstrapped from the shell localize failures in the widget layer.
     l10n = (root / "lib/l10n/failure_l10n.dart").exists()
     files = build_files(pkg, args.feature, args.entity, plural, layers, l10n)
+
+    # Shell projects navigate with typed routes: generate the route class,
+    # its test and the AppRoute entry alongside the screen.
+    typed_routes = "presentation" in layers and (root / "lib/core/navigation/app_route_data.dart").exists()
+    route_name = camel(args.feature)
+    route_path = "/" + snake(args.feature).replace("_", "-")
+    if typed_routes:
+        files.update(route_files(pkg, args.feature))
     created, skipped = [], []
     for rel, content in files.items():
         path = root / rel
@@ -505,6 +585,13 @@ def main():
     for rel in skipped:
         print(f"Skipped (exists): {rel}")
 
+    if typed_routes:
+        status = add_app_route(root, route_name, route_path, args.dry_run)
+        if status == "added":
+            print(f"{'Would add' if args.dry_run else 'Added'}: AppRoute.{route_name}('{route_path}') in lib/shared/navigation/app_route.dart")
+        elif status is None:
+            print(f"Could not edit AppRoute — add `{route_name}('{route_path}')` to the enum by hand")
+
     if created and not args.dry_run:
         format_files(root, created)
 
@@ -513,7 +600,24 @@ def main():
     print("\nNext steps:")
     if "data" in layers and "domain" in layers:
         print(f"  - Call register{F}Dependencies() in setupDependencies (lib/di/service_locator.dart)")
-    if "presentation" in layers:
+    if typed_routes:
+        print(
+            "  - Add this GoRoute to the routes list in lib/shared/navigation/app_router.dart\n"
+            f"    (imports: features/{f}/presentation/screens/{f}_screen.dart,\n"
+            f"     shared/navigation/routes/{f}_routes.dart):\n"
+            "        GoRoute(\n"
+            f"          path: AppRoute.{route_name}.path,\n"
+            f"          name: AppRoute.{route_name}.name,\n"
+            "          pageBuilder: (_, state) => buildTypedPage(\n"
+            "            state,\n"
+            "            logger: logger,\n"
+            f"            parse: {F}Route.fromParams,\n"
+            f"            builder: (_) => const {F}Screen(),\n"
+            "          ),\n"
+            "        ),\n"
+            f"  - Navigate with: context.nav.push(const {F}Route())"
+        )
+    elif "presentation" in layers:
         print(f"  - Add an AppRoute entry and GoRoute for {F}Screen in lib/shared/navigation/")
     print(f"  - Fill in model fields, endpoint and business rules under lib/features/{f}/")
     print("  - Run: dart format lib test && flutter analyze && flutter test  (prefix with fvm if used)")

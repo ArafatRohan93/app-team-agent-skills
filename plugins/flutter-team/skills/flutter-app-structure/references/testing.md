@@ -14,4 +14,5 @@
   - use cases: business rules
   - cubits: emitted state sequences
   - screens: one test per state
+  - route classes: `fromParams` round trip, rejection of missing or malformed required parameters, defaults for bad optional ones
 - **Coverage gate:** `scripts/local_ci.sh` fails below `MIN_COVERAGE` (80% by default). Generated code, entry points and thin plugin wrappers are excluded in `COVERAGE_EXCLUDES`. Add new thin SDK adapters there instead of lowering the gate.

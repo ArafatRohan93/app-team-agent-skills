@@ -16,14 +16,16 @@ lib/
 │   ├── config/               # Flavor, AppConfig
 │   ├── domain/failures/      # sealed Failure (shared by every feature)
 │   ├── network/              # NetworkClient, NetworkResponse, sealed NetworkException, toFailure()
-│   ├── navigation/           # AppNavigator
+│   ├── navigation/           # AppNavigator, AppRouteData (typed route base), RouteParams (safe URL param readers)
 │   ├── logger/               # AppLogger
 │   ├── crash/                # CrashReporter
 │   ├── storage/              # KeyValueStorage
 │   └── image_resolver/       # ImageResource
 ├── shared/                   # IMPLEMENTATIONS of core contracts + app-wide UI
 │   ├── network/              # DioNetworkClient, NetworkClientFactory, interceptors/
-│   ├── navigation/           # AppRoute, AppRouter, GoRouterNavigator, NavigatorScope (context.nav), transitions/
+│   ├── navigation/           # AppRoute, AppRouter, buildTypedPage, InvalidRouteScreen, GoRouterNavigator,
+│   │   │                     #   NavigatorScope (context.nav), transitions/
+│   │   └── routes/           # <feature>_routes.dart: typed route classes (HomeRoute, OrderDetailsRoute…)
 │   ├── theme/                # theme.dart barrel, app_theme, theme_context_ext, tokens/, component_themes/
 │   ├── image_resolver/       # ImageResourceResolver + PNG/SVG resources
 │   ├── logging/  crash/  storage/  bloc/ (AppBlocObserver)
@@ -75,7 +77,7 @@ When feature A needs something from feature B, move it. A contract goes to `core
 3. **Constructor injection** uses named params and private fields: `const Foo({required Bar bar}) : _bar = bar; final Bar _bar;`. See [abstractions/dependency-injection.md](abstractions/dependency-injection.md).
 4. **Use cases** hold business rules (page sizes, "not found → empty", sequencing) and are invoked through `call()`.
 5. **Cubit state** is a `sealed class XState` in a `part of` file, with `XInitial / XLoading / XLoaded / XError`. Screens render it with an exhaustive `switch (state)`. `XError` carries the `Failure`, and the widget shows `failure.localizedMessage(context.l10n)`.
-6. **Navigation** goes through `context.nav.*` and paths come from the `AppRoute` enum. See [abstractions/navigation.md](abstractions/navigation.md).
+6. **Navigation** uses typed route classes: `context.nav.push(OrderDetailsRoute(orderId: id))`. Route classes live in `shared/navigation/routes/`, have primitive fields only, and parse URLs in `fromParams`. Every `GoRoute` goes through `buildTypedPage`, so broken links show `InvalidRouteScreen` instead of building with bad arguments. See [abstractions/navigation.md](abstractions/navigation.md).
 7. **Theme** is read through `context.colors`, `context.appColors`, `context.textTheme` and `AppDimensions`. See [abstractions/theme.md](abstractions/theme.md).
 8. **Images** are declared only in `ImageResourceResolver` and drawn with `.getImageWidget()`. See [abstractions/images.md](abstractions/images.md).
 9. **Strings** come from `context.l10n`. See [abstractions/localization.md](abstractions/localization.md).
@@ -99,7 +101,7 @@ When feature A needs something from feature B, move it. A contract goes to `core
 | Widget used by 2+ features | `shared/widgets/` |
 | Widget used by one feature | `features/<f>/presentation/widgets/` |
 | Glue between features triggered by app events (sign-in, push tap, deep link) | `shared/coordinators/<x>_coordinator.dart` with `initialize()`/`dispose()`, started from `bootstrap.dart` |
-| Route path / route builder | `AppRoute` enum / `AppRouter` |
+| Route path / typed route class / route builder | `AppRoute` enum / `shared/navigation/routes/<feature>_routes.dart` / `AppRouter` (via `buildTypedPage`) |
 | Colours, spacing, text styles | `shared/theme/tokens/` |
 | Storage key | `shared/storage/storage_keys.dart` |
 | User-visible string | `lib/l10n/arb/app_en.arb` |

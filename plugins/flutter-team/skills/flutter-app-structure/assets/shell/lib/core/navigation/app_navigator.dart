@@ -1,44 +1,35 @@
-/// Navigation contract. Widgets reach it through `context.nav`
-/// (see shared/navigation/navigator_scope.dart); coordinators get it from DI.
-/// Nothing outside shared/navigation/ may import go_router.
-abstract interface class AppNavigator {
-  /// Clears the stack and shows [location]. Stack: [A, B, C] → [D]
-  void popAllThenPush(String location, {Object? extra});
+import 'app_route_data.dart';
 
-  /// Pushes [location] on top. Stack: [A, B] → [A, B, C].
+/// Navigation contract. Widgets reach it through `context.nav`
+/// (shared/navigation/navigator_scope.dart); coordinators get it from DI.
+/// Nothing outside shared/navigation/ may import go_router.
+///
+/// Features navigate with typed routes only:
+///   context.nav.push(OrderDetailsRoute(orderId: order.id));
+/// A route that isn't [AppRouteData.isValid] is refused (asserts in debug).
+abstract interface class AppNavigator {
+  /// Pushes [route] on top. Stack: [A, B] → [A, B, C].
   /// Completes with the value the pushed screen passes to [pop].
-  Future<T?> push<T extends Object?>(String location, {Object? extra});
+  /// [extra] is an optional in-memory speed-up only (e.g. an already-loaded
+  /// model) — the screen must work without it.
+  Future<T?> push<T extends Object?>(AppRouteData route, {Object? extra});
+
+  /// Replaces the top screen. Stack: [A, B] → [A, C]
+  void replace(AppRouteData route, {Object? extra});
+
+  /// Clears the stack and shows [route]. Stack: [A, B, C] → [D]
+  void popAllThenPush(AppRouteData route, {Object? extra});
 
   /// Pops the top screen, optionally returning [result]. Stack: [A, B] → [A]
   void pop<T extends Object?>([T? result]);
 
-  /// Replaces the top screen. Stack: [A, B] → [A, C]
-  void replace(String location, {Object? extra});
-
-  /// [popAllThenPush] by route name.
-  void popAllThenPushNamed(
-    String name, {
-    Map<String, String> pathParameters = const {},
-    Map<String, dynamic> queryParameters = const {},
-    Object? extra,
-  });
-
-  /// [push] by route name.
-  Future<T?> pushNamed<T extends Object?>(
-    String name, {
-    Map<String, String> pathParameters = const {},
-    Map<String, dynamic> queryParameters = const {},
-    Object? extra,
-  });
-
-  /// [replace] by route name.
-  void replaceNamed(
-    String name, {
-    Map<String, String> pathParameters = const {},
-    Map<String, dynamic> queryParameters = const {},
-    Object? extra,
-  });
-
   /// True when [pop] is safe (more than one screen on the stack).
   bool canPop();
+
+  /// Raw URL variants for deep links and notification payloads. Only
+  /// coordinators use these; the router still parses and validates the URL
+  /// before building, so a broken link shows InvalidRouteScreen.
+  Future<T?> pushLocation<T extends Object?>(String location);
+
+  void popAllThenPushLocation(String location);
 }

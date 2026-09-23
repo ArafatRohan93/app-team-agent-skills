@@ -50,4 +50,4 @@ python3 scripts/bootstrap_app.py --root /tmp/demo_app --app-name "Demo App"
 (cd /tmp/demo_app && scripts/local_ci.sh)
 ```
 
-The last run of this produced 39 passing tests, 95% coverage, and Android and iOS builds for each flavor with distinct bundle ids and app names.
+The last run of this produced 55 passing tests, 96% coverage, and Android and iOS builds for each flavor with distinct bundle ids and app names.

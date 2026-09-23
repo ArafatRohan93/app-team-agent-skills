@@ -40,7 +40,7 @@ Options: `--skip-android`, `--skip-ios` (for example on Linux), `--skip-verify`,
 | State management | flutter_bloc + `AppBlocObserver`. bloc_test is available for tests |
 | Localization | `flutter_localizations` + `intl`, `l10n.yaml`, `app_en.arb`, `context.l10n`, `Failure.localizedMessage` |
 | Theme | two-layer tokens, light + dark `ThemeData`, `context.colors/appColors/textTheme` |
-| Abstractions | network (Dio), navigation (go_router), logger, crash reporter (console), secure key-value storage, image resolver |
+| Abstractions | network (Dio), navigation (go_router behind `AppNavigator`, typed routes with push- and build-time argument checks, `InvalidRouteScreen`), logger, crash reporter (console), secure key-value storage, image resolver |
 | Tests | ~40 tests for every shell piece, `test/helpers/pump_app.dart` and `mocks.dart`. Coverage above 90% |
 | Tooling | `analysis_options.yaml` (flutter_lints + team rules), `scripts/local_ci.sh`, `.vscode/launch.json`, `README.md` |
 | Removed | the counter `lib/main.dart` and `test/widget_test.dart` |

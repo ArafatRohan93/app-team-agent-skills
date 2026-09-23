@@ -57,7 +57,7 @@ Rules:
 - Features depend on `core/` contracts, never on `shared/` implementations or on other features.
 - Repositories return `Either<Failure, T>`.
 - State is managed with Cubits.
-- Navigate with `context.nav`.
+- Navigate with typed routes: `context.nav.push(OrderDetailsRoute(orderId: id))`. Route classes live in `lib/shared/navigation/routes/`. Every `GoRoute` in `AppRouter` goes through `buildTypedPage`, which parses URL arguments and shows `InvalidRouteScreen` for broken links.
 - Read colours and text styles with `context.colors` and `context.textTheme`, and spacing with `AppDimensions`.
 - Show images with `ImageResourceResolver.<name>.getImageWidget()`.
 - Get strings from `context.l10n`.

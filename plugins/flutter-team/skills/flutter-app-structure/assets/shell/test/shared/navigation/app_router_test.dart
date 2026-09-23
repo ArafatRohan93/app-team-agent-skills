@@ -4,8 +4,10 @@ import 'package:{{package}}/core/config/app_config.dart';
 import 'package:{{package}}/core/config/flavor.dart';
 import 'package:{{package}}/features/home/presentation/screens/home_screen.dart';
 import 'package:{{package}}/l10n/l10n.dart';
-import 'package:{{package}}/shared/navigation/app_route.dart';
 import 'package:{{package}}/shared/navigation/app_router.dart';
+import 'package:{{package}}/shared/navigation/invalid_route_screen.dart';
+import 'package:{{package}}/shared/navigation/navigator_scope.dart';
+import 'package:{{package}}/shared/navigation/routes/home_routes.dart';
 
 import '../../helpers/mocks.dart';
 
@@ -22,10 +24,13 @@ void main() {
 
   Future<void> pumpRouter(WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp.router(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        routerConfig: router.routerConfig,
+      NavigatorScope(
+        navigator: router.navigator,
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router.routerConfig,
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -39,36 +44,36 @@ void main() {
       expect(router.navigator.canPop(), isFalse);
     });
 
-    testWidgets('push and pop move through the stack', (tester) async {
+    testWidgets('typed routes push, replace, pop and reset the stack', (
+      tester,
+    ) async {
       await pumpRouter(tester);
 
-      router.navigator.push<void>('/missing');
+      router.navigator.push<void>(const HomeRoute());
       await tester.pumpAndSettle();
-      expect(find.byType(HomeScreen), findsNothing);
       expect(router.navigator.canPop(), isTrue);
 
+      router.navigator.replace(const HomeRoute());
+      await tester.pumpAndSettle();
       router.navigator.pop<void>();
+      await tester.pumpAndSettle();
+      expect(router.navigator.canPop(), isFalse);
+
+      router.navigator.popAllThenPush(const HomeRoute());
       await tester.pumpAndSettle();
       expect(find.byType(HomeScreen), findsOneWidget);
     });
 
-    testWidgets('named navigation resolves AppRoute names', (tester) async {
+    testWidgets('an unknown location shows InvalidRouteScreen', (
+      tester,
+    ) async {
       await pumpRouter(tester);
 
-      router.navigator.pushNamed<void>(AppRoute.home.name);
+      router.navigator.popAllThenPushLocation('/does-not-exist');
       await tester.pumpAndSettle();
-      expect(router.navigator.canPop(), isTrue);
+      expect(find.byType(InvalidRouteScreen), findsOneWidget);
 
-      router.navigator.replaceNamed(AppRoute.home.name);
-      await tester.pumpAndSettle();
-      router.navigator.replace(AppRoute.home.path);
-      await tester.pumpAndSettle();
-
-      router.navigator.popAllThenPushNamed(AppRoute.home.name);
-      await tester.pumpAndSettle();
-      expect(router.navigator.canPop(), isFalse);
-
-      router.navigator.popAllThenPush(AppRoute.home.path);
+      await tester.tap(find.byType(FilledButton));
       await tester.pumpAndSettle();
       expect(find.byType(HomeScreen), findsOneWidget);
     });

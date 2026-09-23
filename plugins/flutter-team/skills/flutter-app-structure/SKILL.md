@@ -43,7 +43,7 @@ When it's done, tell the user what's left to them: real API base URLs in `lib/ma
 | Add a feature, screen, use case, repository or cubit | `references/feature-layers.md` + `scripts/scaffold_feature.py` |
 | Environments, flavors, config, secrets | `references/abstractions/config-and-flavors.md` |
 | Calling an API, error mapping, interceptors | `references/abstractions/network.md` |
-| Navigating, adding routes, guards | `references/abstractions/navigation.md` |
+| Navigating, adding routes, route arguments and deep links, guards | `references/abstractions/navigation.md` |
 | Colours, text styles, spacing, dark mode | `references/abstractions/theme.md` |
 | Adding or using images and icons | `references/abstractions/images.md` |
 | User-visible strings, error messages | `references/abstractions/localization.md` |
@@ -71,7 +71,7 @@ These are what keep the structure intact. Each rule's reason is in the linked do
 3. Errors are values. Data sources return `Either<NetworkException, T>` and repositories return `Either<Failure, T>`. Nothing throws across layers.
 4. Every dependency comes in through a named constructor parameter. Only DI modules, `AppRouter` and screen-level `BlocProvider.create` call `sl`.
 5. State is a sealed class in a Cubit. Error states carry the `Failure`, and widgets show `failure.localizedMessage(context.l10n)`.
-6. Navigate with `context.nav.*` and `AppRoute`. Never use `context.go`, `GoRouter.of` or `Navigator.push`.
+6. Navigate only with typed routes: `context.nav.push(XRoute(...))`. Route classes live in `shared/navigation/routes/` with primitive fields, and `fromParams` rejects broken URLs. Every `GoRoute` goes through `buildTypedPage`. No URL strings, no required data in `extra`, and never `context.go`, `GoRouter.of` or `Navigator.push`.
 7. Read the theme only through `context.colors`, `context.appColors`, `context.textTheme` and `AppDimensions`. No raw colours, sizes or text styles in features.
 8. Render images only through `ImageResourceResolver.<name>.getImageWidget()`. Never `Image.asset` or `SvgPicture.asset`.
 9. User-visible text only via `context.l10n`.

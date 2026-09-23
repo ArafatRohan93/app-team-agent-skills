@@ -28,5 +28,17 @@
   "errorGeneric": "Something went wrong",
   "@errorGeneric": {
     "description": "Fallback error message"
+  },
+  "routeInvalidTitle": "Page not found",
+  "@routeInvalidTitle": {
+    "description": "Title on InvalidRouteScreen (unknown path or broken link arguments)"
+  },
+  "routeInvalidMessage": "This link is invalid or has expired.",
+  "@routeInvalidMessage": {
+    "description": "Body on InvalidRouteScreen"
+  },
+  "routeGoHome": "Go to home",
+  "@routeGoHome": {
+    "description": "Button on InvalidRouteScreen"
   }
 }

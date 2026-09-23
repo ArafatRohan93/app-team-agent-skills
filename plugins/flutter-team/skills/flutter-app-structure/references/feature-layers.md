@@ -4,15 +4,17 @@
 ```bash
 python3 <skill-dir>/scripts/scaffold_feature.py --root . --feature orders --entity Order [--plural Orders] [--layers data,domain,presentation] [--dry-run]
 ```
-This writes compile-ready stubs: model, remote data source, repository contract and impl, use case, cubit and state, screen, `di/modules/orders_module.dart`, and mirrored repository and cubit tests. It reads the package name from `pubspec.yaml`, never overwrites files and formats its output. If `lib/l10n/failure_l10n.dart` exists (a bootstrapped shell), states carry the `Failure` and the screen localizes it. Otherwise the cubit maps failures to strings, which is the legacy style.
+This writes compile-ready stubs: model, remote data source, repository contract and impl, use case, cubit and state, screen, `di/modules/orders_module.dart`, and mirrored repository and cubit tests. In shell projects it also writes the feature's route class (`shared/navigation/routes/<feature>_routes.dart`) and its test, and adds the `AppRoute` entry. It reads the package name from `pubspec.yaml`, never overwrites files and formats its output. If `lib/l10n/failure_l10n.dart` exists (a bootstrapped shell), states carry the `Failure` and the screen localizes it. Otherwise the cubit maps failures to strings, which is the legacy style.
 
 After generating:
 1. Fill in model fields and `fromJson`/`toJson`, the endpoint, and use-case rules. Delete stubs you don't need.
 2. Add `registerOrdersDependencies()` to `setupDependencies` in `lib/di/service_locator.dart`, after the modules it depends on.
-3. Add an `AppRoute` entry and a `GoRoute` (see [abstractions/navigation.md](abstractions/navigation.md)).
+3. Paste the `GoRoute` the script printed into `AppRouter`. It goes through `buildTypedPage` with `XRoute.fromParams`. Add path or query fields to the route class if the screen needs arguments (see [abstractions/navigation.md](abstractions/navigation.md)).
 4. Add l10n strings, finish the tests, and run `scripts/local_ci.sh --skip-build`.
 
 Below is the reference shape of each file. `app` stands for the package name.
+
+**Import fpdart with `show`.** For example, `import 'package:fpdart/fpdart.dart' show Either, left, right;`, listing only the names the file uses. fpdart also exports common names such as `Order`, `State`, `Task` and `Option`. A bare import clashes with entities that have those names (`ambiguous_import`). The scaffold already generates the `show` form.
 
 ## data/models
 ```dart

@@ -1,0 +1,8 @@
+# This repo is not a Dart package. The files under assets/shell/ are templates
+# that scripts/bootstrap_app.py copies into new apps, replacing {{package}}
+# and other placeholders on the way. They don't resolve here, so exclude them
+# from analysis. They're verified by bootstrapping a fresh app (see README →
+# Contributing).
+analyzer:
+  exclude:
+    - plugins/**/assets/shell/**
