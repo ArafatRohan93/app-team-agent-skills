@@ -1,0 +1,16 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - lib/l10n/gen/**
+    - build/**
+  errors:
+    avoid_print: error
+    always_declare_return_types: warning
+    avoid_double_and_int_checks: warning
+
+linter:
+  rules:
+    avoid_print: true
+    always_declare_return_types: true
+    avoid_double_and_int_checks: true

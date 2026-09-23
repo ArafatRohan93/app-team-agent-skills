@@ -1,0 +1,32 @@
+{
+  "@@locale": "en",
+  "homeWelcome": "Welcome to {appName}",
+  "@homeWelcome": {
+    "description": "Greeting on the home screen",
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSubtitle": "Your app shell is ready. Add a feature to get started.",
+  "@homeSubtitle": {
+    "description": "Subtitle on the home screen"
+  },
+  "commonRetry": "Retry",
+  "@commonRetry": {
+    "description": "Generic retry button label"
+  },
+  "errorNoInternet": "No internet connection",
+  "@errorNoInternet": {
+    "description": "Shown for NetworkFailure"
+  },
+  "errorSessionExpired": "Session expired. Please sign in again.",
+  "@errorSessionExpired": {
+    "description": "Shown for UnauthorizedFailure"
+  },
+  "errorGeneric": "Something went wrong",
+  "@errorGeneric": {
+    "description": "Fallback error message"
+  }
+}

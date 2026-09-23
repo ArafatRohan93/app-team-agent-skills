@@ -1,0 +1,6 @@
+{
+  "name": "flutter-team",
+  "description": "Team Flutter standards: app bootstrap, architecture conventions, feature scaffolding",
+  "version": "1.0.0",
+  "author": { "name": "Arafat Rohan", "email": "arafat.rohan@vivasoftltd.com" }
+}

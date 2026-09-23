@@ -1,0 +1,19 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+/.idea/
+/.vscode/
+*.swp
+
+# Python (skill scripts)
+__pycache__/
+*.pyc
+
+# Skill development artifacts
+*-workspace/          # skill-creator eval runs
+*.skill               # packaged skill archives
+*.log
+
+# Scratch Flutter apps used to test the bootstrap. Never commit them.
+/tmp/
+/sandbox/

@@ -1,0 +1,97 @@
+# {{app_name}}
+
+{{description}}
+
+---
+
+## Getting started
+
+Requirements: Flutter {{flutter_version}}{{fvm_note}}, Xcode (iOS), Android SDK.
+
+```sh
+{{flutter}} pub get
+{{flutter}} gen-l10n
+```
+
+## Flavors
+
+The app has three flavors. Each has its own entry point, bundle id and app name, so all three can be installed side by side.
+
+| Flavor | Entry point | Android applicationId / iOS bundle id | App name |
+|---|---|---|---|
+| development | `lib/main_development.dart` | `{{bundle_id}}.dev` | [DEV] {{app_name}} |
+| staging | `lib/main_staging.dart` | `{{bundle_id}}.stg` | [STG] {{app_name}} |
+| production | `lib/main_production.dart` | `{{bundle_id}}` | {{app_name}} |
+
+```sh
+# Run
+{{flutter}} run --flavor development -t lib/main_development.dart
+{{flutter}} run --flavor staging     -t lib/main_staging.dart
+{{flutter}} run --flavor production  -t lib/main_production.dart
+
+# Build
+{{flutter}} build apk --flavor production -t lib/main_production.dart
+{{flutter}} build ipa --flavor production -t lib/main_production.dart
+```
+
+VS Code users can pick a flavor from the Run and Debug panel (`.vscode/launch.json`).
+
+Per-flavor settings such as the API base URL live in the `AppConfig` passed by each `main_<flavor>.dart`. Secrets are not committed. Pass them with `--dart-define` or `--dart-define-from-file` and read them with `String.fromEnvironment`.
+
+## Project structure
+
+```
+lib/
+├── main_<flavor>.dart   # picks the AppConfig, calls bootstrap()
+├── bootstrap.dart       # DI, crash reporting, error hooks, Bloc observer, runApp
+├── app/                 # root App widget (MaterialApp.router, theme, l10n)
+├── di/                  # GetIt service locator + one module per area
+├── core/                # contracts only: config, network, navigation, logger,
+│                        #   crash, storage, image_resolver, domain/failures
+├── shared/              # implementations of core contracts + theme, widgets
+├── l10n/                # ARB files (arb/) and generated code (gen/)
+└── features/<name>/     # data/ · domain/ · presentation/
+```
+
+Rules:
+- Features depend on `core/` contracts, never on `shared/` implementations or on other features.
+- Repositories return `Either<Failure, T>`.
+- State is managed with Cubits.
+- Navigate with `context.nav`.
+- Read colours and text styles with `context.colors` and `context.textTheme`, and spacing with `AppDimensions`.
+- Show images with `ImageResourceResolver.<name>.getImageWidget()`.
+- Get strings from `context.l10n`.
+
+## State management
+
+This project uses [flutter_bloc](https://bloclibrary.dev) Cubits. Each cubit lives in `features/<f>/presentation/cubits/` with a sealed `<X>State` in a `part` file. `AppBlocObserver` logs every transition in debug builds.
+
+## Localization
+
+Strings live in `lib/l10n/arb/app_en.arb`. To add a string:
+
+1. Add the key and an `@key` description to `app_en.arb`.
+2. Run `{{flutter}} gen-l10n`. This also runs automatically on `flutter run` and `flutter build`.
+3. Use it as `context.l10n.yourKey`.
+
+To add a language, create `app_<locale>.arb` with the same keys and add the locale to `CFBundleLocalizations` in `ios/Runner/Info.plist`.
+
+## Testing
+
+```sh
+{{flutter}} test                 # all tests
+{{flutter}} test --coverage      # with coverage → coverage/lcov.info
+```
+
+`test/` mirrors `lib/`. Widget tests use `tester.pumpApp(...)` from `test/helpers/pump_app.dart`, which provides the theme, localizations and a mock navigator. Shared mocks of the core contracts are in `test/helpers/mocks.dart`.
+
+## Local CI
+
+Run this before pushing:
+
+```sh
+scripts/local_ci.sh              # format, analyze, test + coverage gate, Android & iOS builds
+scripts/local_ci.sh --skip-build # fast: checks and tests only
+```
+
+The coverage minimum defaults to 80%. Override it with `MIN_COVERAGE=90`.
