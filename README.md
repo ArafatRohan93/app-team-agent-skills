@@ -54,6 +54,8 @@ Skills change through pull requests, like code.
 2. **Verify it still works.** For `flutter-app-structure`, bootstrap a fresh app and run its CI:
    ```bash
    flutter create --org com.acme --project-name demo_app --platforms android,ios /tmp/demo_app
+   # fvm users: use `fvm spawn <version> create ...` above, then pin the version so the scripts use fvm:
+   #   echo '{"flutter":"<version>"}' > /tmp/demo_app/.fvmrc
    python3 plugins/flutter-team/skills/flutter-app-structure/scripts/bootstrap_app.py --root /tmp/demo_app --app-name "Demo App"
    (cd /tmp/demo_app && scripts/local_ci.sh)
    ```
