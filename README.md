@@ -7,7 +7,7 @@ Our team's shared skills for AI coding agents: Claude Code, Antigravity, Codex, 
 | Skill | What it does |
 |---|---|
 | [`flutter-app-structure`](plugins/flutter-team/skills/flutter-app-structure/SKILL.md) | Turns an empty `flutter create` project into our production app shell: dev/staging/prod flavors, clean architecture, DI, Cubits, networking, navigation, theme, l10n, tests, local CI. It also scaffolds features and enforces our conventions in existing apps. |
-| [`flutter-design-system-theme`](plugins/flutter-team/skills/flutter-design-system-theme/SKILL.md) | Turns a design hand-off into the app's Material 3 theme. It reads a Stitch `DESIGN.md`, a Claude Design System, W3C/Figma token JSON, CSS or Tailwind, a PDF or screenshots, and produces colour roles, brand colours, the type scale, spacing, component themes, dark mode, a preview screen, contrast tests and a mapping report for the designer. Conflicts in the hand-off are raised, never silently resolved. Needs an app built with `flutter-app-structure`. |
+| [`flutter-design-system-theme`](plugins/flutter-team/skills/flutter-design-system-theme/SKILL.md) | Turns a design hand-off into the app's Material 3 theme. It reads a Stitch `DESIGN.md`, a Claude Design System or page export, W3C/Figma token JSON, CSS or Tailwind, any HTML design, Figma's Copy as CSS, a PDF or screenshots (and checks tokens against the drawn screens), and produces colour roles, brand colours, the type scale, spacing, component themes, dark mode, a preview screen, contrast tests and a mapping report for the designer. Conflicts in the hand-off are raised, never silently resolved. Needs an app built with `flutter-app-structure`. |
 
 ## Install
 

@@ -547,6 +547,21 @@ InputDecorationTheme inputDecorationTheme(
 """
 
 
+# Public names each token file defines (keep in sync with gen_colors / gen_typography / gen_dimensions).
+TOKEN_IMPORTS = {"app_dimensions": ("AppDimensions",), "app_typography": ("AppTypography",),
+                 "app_colors": ("AppColorExtension", "AppColorsLight")}
+
+
+def prune_token_imports(text):
+    """Drop `../tokens/<x>.dart` imports whose names the file doesn't use (a design with only literal radii…)."""
+    for module, symbols in TOKEN_IMPORTS.items():
+        line = f"import '../tokens/{module}.dart';\n"
+        body = text.replace(line, "")
+        if line in text and not any(re.search(rf"\b{sym}\b", body) for sym in symbols):
+            text = body
+    return re.sub(r"\n{3,}", "\n\n", text)
+
+
 def gen_surface_themes(spec, dims):
     comp = spec.get("components") or {}
     card, chip = comp.get("card") or {}, comp.get("chip") or {}
@@ -993,6 +1008,7 @@ void main() {{
 """
 
     preview_test = f"""{HEADER}
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:{pkg}/shared/theme/preview/theme_preview_screen.dart';
 import 'package:{pkg}/shared/theme/theme.dart';
@@ -1004,7 +1020,8 @@ void main() {{
     for (final (mode, theme) in [('light', AppTheme.light), ('dark', AppTheme.dark)]) {{
       testWidgets('renders every token in $mode mode', (tester) async {{
         await tester.pumpApp(const ThemePreviewScreen(), theme: theme);
-        await tester.scrollUntilVisible(find.text('Card'), 400);
+        // The page's own list: text fields in the preview have inner scrollables too.
+        await tester.scrollUntilVisible(find.text('Card'), 400, scrollable: find.byType(Scrollable).first);
 
         expect(tester.takeException(), isNull);
       }});
@@ -1194,6 +1211,8 @@ def main():
         "test/shared/theme/theme_preview_screen_test.dart": preview_test,
         "design/THEME_REPORT.md": gen_report(spec, dims, provenance, provisional, warnings, font_warning),
     }
+    files = {rel: prune_token_imports(text) if rel.startswith("lib/shared/theme/component_themes/") else text
+             for rel, text in files.items()}
 
     for rel, content in files.items():
         path = root / rel

@@ -31,11 +31,16 @@ All paths below are relative to this skill's folder. The scripts need only `pyth
 | Hand-off | Guide | Draft script |
 |---|---|---|
 | Google Stitch `DESIGN.md` | `references/inputs/stitch-design-md.md` | `--from stitch` |
-| Figma variables, Tokens Studio or W3C DTCG JSON | `references/inputs/design-tokens-json.md` | `--from dtcg` |
+| Figma variables, Tokens Studio or W3C DTCG JSON (palette plus semantic tiers, composite text styles, modes) | `references/inputs/design-tokens-json.md` | `--from dtcg` (`--dark <file>` for a separate dark-mode file) |
 | CSS custom properties or a Tailwind theme | `references/inputs/css-tailwind.md` | `--from css` |
 | Claude Design System (claude.ai `project/tokens.json` plus READMEs) | `references/inputs/claude-design.md` | `--from claude` |
 | Any **HTML design**: a Claude Design page export (bundled or rendered), an HTML/CSS mock-up, a Tailwind or React prototype, a responsive page | `references/inputs/html-design.md` | `--from html` (writes `<file>.evidence.md`) |
+| Figma **Copy as CSS** (layers selected in Figma → Copy as CSS, pasted into a `.txt`) | `references/inputs/figma-css.md` | `--from figma-css` (writes `<file>.evidence.md`) |
 | PDF or screenshots | `references/inputs/visual-sources.md` | none. Write the spec by hand, at low confidence |
+
+**Tokens and screens together give the best result.** Tokens have the names; screens show what the designer actually uses. Pass the screens with any token input: `--screens <figma copy or html>`. The draft then:
+- opens a conflict wherever a role's drawn colour differs from its token;
+- lists drift (near-identical values), token colours the screens don't use, and drawn colours no token matches.
 
 ## Workflow
 
@@ -45,7 +50,9 @@ All paths below are relative to this skill's folder. The scripts need only `pyth
 python3 scripts/draft_spec.py --from stitch design/sources/DESIGN.md -o design/theme.spec.json
 ```
 
-This maps everything that can be mapped by name, converts units (px, rem and em become dp) and records sources. Whatever it can't place goes to `unmapped`. If the input has no structured part (a PDF or screenshot), start from `references/spec-format.md` and write the spec yourself.
+This maps everything that can be mapped by name, converts units (px, rem and em become dp) and records sources. Whatever it can't place goes to `unmapped`.
+- **Tokens with screens:** when the hand-off has both, add the screens, e.g. `--from dtcg design/sources/tokens.json --screens design/sources/screens.figma.css.txt`.
+- **No structured part** (a PDF or screenshot): start from `references/spec-format.md` and write the spec yourself.
 
 ### 2. Complete the spec (your judgement)
 
