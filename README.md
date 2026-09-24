@@ -7,6 +7,7 @@ Our team's shared skills for AI coding agents: Claude Code, Antigravity, Codex, 
 | Skill | What it does |
 |---|---|
 | [`flutter-app-structure`](plugins/flutter-team/skills/flutter-app-structure/SKILL.md) | Turns an empty `flutter create` project into our production app shell: dev/staging/prod flavors, clean architecture, DI, Cubits, networking, navigation, theme, l10n, tests, local CI. It also scaffolds features and enforces our conventions in existing apps. |
+| [`flutter-design-system-theme`](plugins/flutter-team/skills/flutter-design-system-theme/SKILL.md) | Turns a design hand-off into the app's Material 3 theme. It reads a Stitch `DESIGN.md`, a Claude Design System, W3C/Figma token JSON, CSS or Tailwind, a PDF or screenshots, and produces colour roles, brand colours, the type scale, spacing, component themes, dark mode, a preview screen, contrast tests and a mapping report for the designer. Conflicts in the hand-off are raised, never silently resolved. Needs an app built with `flutter-app-structure`. |
 
 ## Install
 
@@ -18,6 +19,7 @@ Requires [Node.js](https://nodejs.org). [`skills`](https://github.com/vercel-lab
 
 ```bash
 npx skills add https://github.com/ArafatRohan93/app-team-agent-skills/tree/main/plugins/flutter-team/skills/flutter-app-structure -g
+npx skills add https://github.com/ArafatRohan93/app-team-agent-skills/tree/main/plugins/flutter-team/skills/flutter-design-system-theme -g
 ```
 
 - `-g` installs the skill for your user, so it's available in every project. Leave it out to install only into the current project.
@@ -86,6 +88,8 @@ You don't need to call a skill by name. Just describe the task. Some examples:
 - *"Add an orders feature that loads orders from `/orders`."*
 - *"Where should a Firebase Analytics wrapper live?"*
 - *"Review this branch against our Flutter architecture."*
+- *"Here's the designer's Stitch DESIGN.md — theme the app from it."*
+- *"The design system changed, update the theme."*
 
 In Claude Code you can also invoke it explicitly with `/flutter-app-structure`.
 
@@ -155,6 +159,7 @@ Skills change through pull requests, like code.
    python3 plugins/flutter-team/skills/flutter-app-structure/scripts/bootstrap_app.py --root /tmp/demo_app --app-name "Demo App"
    (cd /tmp/demo_app && scripts/local_ci.sh)
    ```
+   For `flutter-design-system-theme`, bootstrap an app the same way, then draft, validate and generate a theme from a sample hand-off, and run the app's `scripts/local_ci.sh`.
 3. Bump `version` in `plugins/<plugin>/.claude-plugin/plugin.json` (patch for fixes, minor for new conventions, major for breaking changes to the generated shell).
 4. Open a PR. Describe what changed and why.
 

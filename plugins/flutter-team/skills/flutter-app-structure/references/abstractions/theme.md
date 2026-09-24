@@ -1,5 +1,7 @@
 # Theme
 
+> **Theming from a designer's hand-off** (Stitch `DESIGN.md`, a Claude Design System, token JSON, CSS, PDF, screenshots): use the **flutter-design-system-theme** skill. It generates every file below from a validated spec. Once it has run, those files are marked GENERATED: change the spec and regenerate instead of editing them. This page describes the structure the files follow and how widgets use them.
+
 **Files:** `lib/shared/theme/`
 ```
 theme.dart                 # barrel. Widgets import only this
