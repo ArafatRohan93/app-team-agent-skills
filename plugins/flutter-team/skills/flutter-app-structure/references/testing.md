@@ -8,7 +8,8 @@
 - **Cubits:** `expectLater(cubit.stream, emitsInOrder([isA<OrdersLoading>(), isA<OrdersLoaded>()]))`, or `blocTest<OrdersCubit, OrdersState>(...)` from bloc_test.
 - **Widgets:** `await tester.pumpApp(const OrdersScreen(), navigator: mockNavigator)` gives you the theme, l10n and `context.nav`. Pass `theme: AppTheme.dark` to check dark mode.
 - **What to test per layer:**
-  - models: `fromJson`/`toJson`
+  - models and DTOs: `fromJson`/`toJson`, plus `toEntity()` mapping, including unknown enum values and missing optional fields
+  - stored-format mappers: a round trip, and an unknown version or malformed data read as "nothing stored"
   - data sources: parsing and error mapping
   - repositories: `Failure` mapping
   - use cases: business rules

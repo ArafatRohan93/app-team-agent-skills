@@ -19,7 +19,7 @@ class SessionLocalDataSource {
   Future<void> markOnboardingCompleted() => _storage.write(StorageKeys.onboardingCompleted, 'true');
 }
 ```
-Store structured values as `jsonEncode(model.toJson())`.
+Store structured values as JSON in a format the app owns: `jsonEncode(mapper.toStored(entity))`, with a schema version. Never store a network DTO's JSON. If the API renames a field, every value already saved would stop parsing. An unknown version or a parse failure counts as "nothing stored" (delete it and carry on). See [architecture.md → Entities and DTOs](../architecture.md#entities-and-dtos).
 
 ## Extending
 - **Non-sensitive, high-volume preferences:** add `SharedPrefsKeyValueStorage implements KeyValueStorage` (shared_preferences) and register it under a second name, `sl.registerLazySingleton<KeyValueStorage>(…, instanceName: 'prefs')`. You can also create a separate `PreferencesStorage` contract if the API needs to differ.

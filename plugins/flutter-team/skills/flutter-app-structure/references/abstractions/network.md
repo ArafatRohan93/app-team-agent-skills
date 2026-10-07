@@ -37,6 +37,7 @@ Future<Either<NetworkException, List<Order>>> getOrders() async {
   }
 }
 ```
+Here `Order` is a feature-local model. When the response carries an app-wide entity, such as the signed-in user, parse it into its DTO and return `dto.toEntity()`. See [architecture.md → Entities and DTOs](../architecture.md#entities-and-dtos).
 
 ## Extending
 - **Auth header or token refresh:** write `shared/network/interceptors/auth_interceptor.dart`. It depends on a `core/auth/AuthService` contract, never on the auth SDK directly. Pass it to `NetworkClientFactory(extraInterceptors: [...])` in `di/modules/network_module.dart`. ruvy_app's `AuthInterceptor` is the reference: it adds the Bearer token on request and signs out on 401 `UNAUTHORIZED`.

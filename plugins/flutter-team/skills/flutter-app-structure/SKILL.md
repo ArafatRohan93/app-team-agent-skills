@@ -50,6 +50,7 @@ When it's done, tell the user what's left to them: real API base URLs in `lib/ma
 | Logging | `references/abstractions/logging.md` |
 | Crash / error reporting (Crashlytics, Sentry) | `references/abstractions/error-reporting.md` |
 | Persisting data | `references/abstractions/storage.md` |
+| Entity vs DTO: when a model must be split, where each lives, stored formats | `references/architecture.md` → Entities and DTOs |
 | Registering dependencies | `references/abstractions/dependency-injection.md` |
 | Writing tests, coverage | `references/testing.md` |
 
@@ -77,6 +78,7 @@ These are what keep the structure intact. Each rule's reason is in the linked do
 9. User-visible text only via `context.l10n`.
 10. Log through `AppLogger` (`print` is a lint error). Report unexpected errors through `CrashReporter`.
 11. `test/` mirrors `lib/`, and `scripts/local_ci.sh` must pass before pushing.
+12. App-wide, multi-source or persisted types are pure-Dart entities, with no `fromJson` and no wire field names. DTOs map to them with `toEntity()`, and stored data uses its own versioned format, never an API's JSON.
 
 ## Reviewing code against the standard
 

@@ -7,7 +7,7 @@ python3 <skill-dir>/scripts/scaffold_feature.py --root . --feature orders --enti
 This writes compile-ready stubs: model, remote data source, repository contract and impl, use case, cubit and state, screen, `di/modules/orders_module.dart`, and mirrored repository and cubit tests. In shell projects it also writes the feature's route class (`shared/navigation/routes/<feature>_routes.dart`) and its test, and adds the `AppRoute` entry. It reads the package name from `pubspec.yaml`, never overwrites files and formats its output. If `lib/l10n/failure_l10n.dart` exists (a bootstrapped shell), states carry the `Failure` and the screen localizes it. Otherwise the cubit maps failures to strings, which is the legacy style.
 
 After generating:
-1. Fill in model fields and `fromJson`/`toJson`, the endpoint, and use-case rules. Delete stubs you don't need.
+1. Fill in model fields and `fromJson`/`toJson`, the endpoint, and use-case rules. Delete stubs you don't need. If the entity is app-wide, multi-source or persisted, split the generated model into an entity and a DTO ([Entities and DTOs](architecture.md#entities-and-dtos)).
 2. Add `registerOrdersDependencies()` to `setupDependencies` in `lib/di/service_locator.dart`, after the modules it depends on.
 3. Paste the `GoRoute` the script printed into `AppRouter`. It goes through `buildTypedPage` with `XRoute.fromParams`. Add path or query fields to the route class if the screen needs arguments (see [abstractions/navigation.md](abstractions/navigation.md)).
 4. Add l10n strings, finish the tests, and run `scripts/local_ci.sh --skip-build`.
@@ -33,6 +33,42 @@ class Order {
 }
 ```
 Request DTOs have `Map<String, dynamic> toJson()` and are named `create_order_request.dart` / `create_order_response.dart`. Models are immutable, `const` where possible, and have no Flutter imports.
+
+That single model is right for feature-local data from one endpoint. If the type is used by other features, comes from more than one source, or is persisted, split it into a pure entity and DTOs that map to it. See [architecture.md → Entities and DTOs](architecture.md#entities-and-dtos).
+```dart
+// core/auth/auth_user.dart: the entity, with no JSON
+class AuthUser {
+  const AuthUser({required this.id, this.firstName = '', this.status = UserStatus.unknown});
+  final String id;
+  final String firstName;
+  final UserStatus status;
+}
+
+// shared/auth/dto/auth_user_dto.dart: mirrors the API, maps to the entity
+class AuthUserDto {
+  const AuthUserDto({required this.id, this.firstName, this.status, this.deleteAfter});
+  final String id;
+  final String? firstName;
+  final String? status;
+  final String? deleteAfter; // in the contract, not used by the app yet
+
+  factory AuthUserDto.fromJson(Map<String, dynamic> json) => AuthUserDto(
+    id: json['id'] as String,
+    firstName: json['first_name'] as String?,
+    status: json['status'] as String?,
+    deleteAfter: json['delete_after'] as String?,
+  );
+
+  AuthUser toEntity() => AuthUser(
+    id: id,
+    firstName: firstName ?? '',
+    status: switch (status) {
+      'ready_as_buyer' => UserStatus.readyAsBuyer,
+      _ => UserStatus.unknown,
+    },
+  );
+}
+```
 
 ## data/data_sources
 See [abstractions/network.md](abstractions/network.md) for the full remote data source pattern. Constructors take `NetworkClient` (remote) or `KeyValueStorage` (local). Add an `abstract interface class OrderDataSource` only when there are multiple implementations.

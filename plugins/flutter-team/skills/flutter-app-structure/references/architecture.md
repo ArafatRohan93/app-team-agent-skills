@@ -20,7 +20,8 @@ lib/
 │   ├── logger/               # AppLogger
 │   ├── crash/                # CrashReporter
 │   ├── storage/              # KeyValueStorage
-│   └── image_resolver/       # ImageResource
+│   ├── image_resolver/       # ImageResource
+│   └── <area>/               # (when needed) app-wide entities, pure Dart with no JSON (e.g. auth/: AuthUser, AuthSession)
 ├── shared/                   # IMPLEMENTATIONS of core contracts + app-wide UI
 │   ├── network/              # DioNetworkClient, NetworkClientFactory, interceptors/
 │   ├── navigation/           # AppRoute, AppRouter, buildTypedPage, InvalidRouteScreen, GoRouterNavigator,
@@ -29,6 +30,7 @@ lib/
 │   ├── theme/                # theme.dart barrel, app_theme, theme_context_ext, tokens/, component_themes/
 │   ├── image_resolver/       # ImageResourceResolver + PNG/SVG resources
 │   ├── logging/  crash/  storage/  bloc/ (AppBlocObserver)
+│   ├── <area>/dto/           # (when needed) wire DTOs + mappers for the app-wide entities in core/<area>/
 │   ├── coordinators/         # (when needed) cross-feature glue reacting to app events
 │   ├── widgets/              # reusable, feature-agnostic widgets
 │   └── utils/                # pure helpers
@@ -36,10 +38,10 @@ lib/
 └── features/<feature>/
     ├── data/
     │   ├── data_sources/     # <x>_remote_data_source.dart (+ optional <x>_data_source.dart interface), <x>_local_data_source.dart
-    │   ├── models/           # JSON models, <action>_<noun>_request.dart / _response.dart
+    │   ├── models/           # wire DTOs: JSON models, <action>_<noun>_request.dart / _response.dart
     │   └── repositories/     # <x>_repository_impl.dart
     ├── domain/
-    │   ├── models/           # (optional) domain-owned types that aren't wire DTOs
+    │   ├── models/           # (optional) feature entities that aren't wire DTOs (see "Entities and DTOs")
     │   ├── repositories/     # <x>_repository.dart: abstract interface class
     │   └── use_cases/        # <verb>_<noun>_use_case.dart, invoked through call()
     ├── presentation/
@@ -84,6 +86,23 @@ When feature A needs something from feature B, move it. A contract goes to `core
 10. **Constant holders** are `abstract final class` (`StorageKeys`, `AppDimensions`, `AppTypography`).
 11. **Imports** are absolute `package:<app>/...`. Relative imports are only OK inside one small folder, such as `shared/theme/`.
 
+## Entities and DTOs
+
+A **DTO** mirrors one source's wire shape: an API response, a push payload. An **entity** is the type the app works with. The question is when they must be separate types.
+
+**One model is fine** when the type is feature-local, comes from a single endpoint and is never persisted. Put it in `data/models/` with `fromJson`, which is what `scaffold_feature.py` generates. Splitting it would only add mapping code.
+
+**Split into an entity plus DTOs** as soon as any of these is true:
+- **It's app-wide.** It's used by more than one feature or by `shared/` (the signed-in user, the session, the cart). The entity lives in `core/<area>/`, and features depend on it.
+- **It has more than one source.** For example, the same user arrives from sign-in, token refresh and the profile endpoint. Each source gets its own DTO that maps to the one entity.
+- **It's persisted locally.** It's stored in `KeyValueStorage` or a database.
+
+Rules for the split:
+- **Entities are pure Dart:** immutable, with no `fromJson`/`toJson`, no snake_case, no package imports. They hold only what the app uses, plus derived getters (`fullName`, `canSell`). A field the app doesn't use stays in the DTO.
+- **DTOs mirror the contract exactly,** including fields the app ignores today. They have `fromJson` and `toEntity()`. Wire enums are mapped in `toEntity()`, and unknown values map to an `unknown` case, never a crash. Feature-local DTOs live in `features/<f>/data/models/`. DTOs for app-wide entities live in `shared/<area>/dto/`, so every data source that receives them can reuse them.
+- **Never persist a DTO's JSON.** Stored data has its own format, written by a mapper next to the code that stores it (`toStored`/`fromStored`), with a schema version (`"v": 1`). An unknown version or a parse failure is treated as "nothing stored". Otherwise a renamed API field silently breaks every value already saved on users' devices.
+- **Why:** when the API changes, only the DTO and its `toEntity()` change. Entities, cubits, widgets and stored data don't.
+
 ## Naming
 
 - File suffixes: `_data_source`, `_remote_data_source`, `_local_data_source`, `_repository`, `_repository_impl`, `_use_case`, `_cubit`, `_state`, `_screen`, `_module`, `_coordinator`, `_service`, `_exception`, `_request`, `_response`, `_test`.
@@ -97,6 +116,7 @@ When feature A needs something from feature B, move it. A contract goes to `core
 |---|---|
 | Wrapper around a package (Dio, Firebase, secure storage…) | contract in `core/<area>/`, implementation in `shared/<area>/`, registered in `di/modules/` |
 | JSON request/response shape | `features/<f>/data/models/` |
+| Entity used by 2+ features, built from 2+ sources, or persisted | entity in `core/<area>/` (pure Dart); DTOs + `toEntity()` in `shared/<area>/dto/`; stored format via a versioned mapper. See [Entities and DTOs](#entities-and-dtos) |
 | Business rule (limits, fallbacks, ordering, validation) | `features/<f>/domain/use_cases/` |
 | Widget used by 2+ features | `shared/widgets/` |
 | Widget used by one feature | `features/<f>/presentation/widgets/` |
