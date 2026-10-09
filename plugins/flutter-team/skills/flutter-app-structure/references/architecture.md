@@ -100,7 +100,8 @@ A **DTO** mirrors one source's wire shape: an API response, a push payload. An *
 Rules for the split:
 - **Entities are pure Dart:** immutable, with no `fromJson`/`toJson`, no snake_case, no package imports. They hold only what the app uses, plus derived getters (`fullName`, `canSell`). A field the app doesn't use stays in the DTO.
 - **DTOs mirror the contract exactly,** including fields the app ignores today. They have `fromJson` and `toEntity()`. Wire enums are mapped in `toEntity()`, and unknown values map to an `unknown` case, never a crash. Feature-local DTOs live in `features/<f>/data/models/`. DTOs for app-wide entities live in `shared/<area>/dto/`, so every data source that receives them can reuse them.
-- **Never persist a DTO's JSON.** Stored data has its own format, written by a mapper next to the code that stores it (`toStored`/`fromStored`), with a schema version (`"v": 1`). An unknown version or a parse failure is treated as "nothing stored". Otherwise a renamed API field silently breaks every value already saved on users' devices.
+- **Never persist a DTO's JSON.** Stored data has its own format, written by a mapper next to the code that stores it (`toStored`/`fromStored`). Otherwise a renamed API field silently breaks every value already saved on users' devices.
+- **No version on stored data.** Don't add a schema version (`"v"`) to cached values: maintaining and migrating versions causes more trouble than it saves. Any failure while reading cached data (a storage error, broken JSON, a missing or wrong field) means "nothing stored": delete the entry and carry on. For a cached session that means signed out. When the stored shape changes, old values that no longer parse are simply dropped.
 - **Why:** when the API changes, only the DTO and its `toEntity()` change. Entities, cubits, widgets and stored data don't.
 
 ## Naming
@@ -116,7 +117,7 @@ Rules for the split:
 |---|---|
 | Wrapper around a package (Dio, Firebase, secure storage…) | contract in `core/<area>/`, implementation in `shared/<area>/`, registered in `di/modules/` |
 | JSON request/response shape | `features/<f>/data/models/` |
-| Entity used by 2+ features, built from 2+ sources, or persisted | entity in `core/<area>/` (pure Dart); DTOs + `toEntity()` in `shared/<area>/dto/`; stored format via a versioned mapper. See [Entities and DTOs](#entities-and-dtos) |
+| Entity used by 2+ features, built from 2+ sources, or persisted | entity in `core/<area>/` (pure Dart); DTOs + `toEntity()` in `shared/<area>/dto/`; stored format via a mapper, no version. See [Entities and DTOs](#entities-and-dtos) |
 | Business rule (limits, fallbacks, ordering, validation) | `features/<f>/domain/use_cases/` |
 | Widget used by 2+ features | `shared/widgets/` |
 | Widget used by one feature | `features/<f>/presentation/widgets/` |

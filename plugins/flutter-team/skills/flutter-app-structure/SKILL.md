@@ -78,7 +78,7 @@ These are what keep the structure intact. Each rule's reason is in the linked do
 9. User-visible text only via `context.l10n`.
 10. Log through `AppLogger` (`print` is a lint error). Report unexpected errors through `CrashReporter`.
 11. `test/` mirrors `lib/`, and `scripts/local_ci.sh` must pass before pushing.
-12. App-wide, multi-source or persisted types are pure-Dart entities, with no `fromJson` and no wire field names. DTOs map to them with `toEntity()`, and stored data uses its own versioned format, never an API's JSON.
+12. App-wide, multi-source or persisted types are pure-Dart entities, with no `fromJson` and no wire field names. DTOs map to them with `toEntity()`, and stored data uses its own format, never an API's JSON, with no version field: if cached data can't be read for any reason, clear it and carry on as if nothing was stored (for a session: signed out).
 
 ## Reviewing code against the standard
 

@@ -9,7 +9,7 @@
 - **Widgets:** `await tester.pumpApp(const OrdersScreen(), navigator: mockNavigator)` gives you the theme, l10n and `context.nav`. Pass `theme: AppTheme.dark` to check dark mode.
 - **What to test per layer:**
   - models and DTOs: `fromJson`/`toJson`, plus `toEntity()` mapping, including unknown enum values and missing optional fields
-  - stored-format mappers: a round trip, and an unknown version or malformed data read as "nothing stored"
+  - stored-format mappers: a round trip, and missing, wrong-typed or malformed data read as "nothing stored"; for the store, a storage read error also means "nothing stored" and clears the entry
   - data sources: parsing and error mapping
   - repositories: `Failure` mapping
   - use cases: business rules
